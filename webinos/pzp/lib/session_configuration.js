@@ -14,6 +14,7 @@
 * limitations under the License.
 *
 * Copyright 2011 Habib Virji, Samsung Electronics (UK) Ltd
+* Copyright 2011 Ziran Sun, Samsung Electronics (UK) Ltd
 *******************************************************************************/
 var path          = require("path");
 var fs            = require("fs");
@@ -24,24 +25,6 @@ var common      = require("./session_common");
 var log         = new common.debug("config");
 
 var session_configuration = exports;
-
-// If modifying, please change both ports
-session_configuration.pzhPort    = 8000; // used by PZP
-session_configuration.farmPort   = 8000; // used by farm when starting
-
-// PZH webserver uses these ports
-session_configuration.httpServerPort = 8900;
-session_configuration.webServerPort  = 9000;
-
-//PZP webserver uses these ports
-session_configuration.pzpHttpServerPort = 8081;
-session_configuration.pzpWebServerPort  = 8080;
-
-// PZP TLS Server to allow PZP"s to connect
-session_configuration.pzpServerPort = 8040;
-
-//PZP Zeroconf port for service advertisement
-session_configuration.pzpZeroconfPort = 4321;
 
 // Default webinos services available when no configuration exists yet
 session_configuration.pzhDefaultServices = [
@@ -55,10 +38,10 @@ session_configuration.modes  = ["VIRGIN", "HUB", "PEER", "HUB_PEER"];
 session_configuration.PZH_MSG = "0";
 session_configuration.PZP_MSG = "1";
 /**
-* @descripton Checks for master certificate, if certificate is not found 
-* it calls generating certificate function defined in certificate manager. 
+* @descripton Checks for master certificate, if certificate is not found
+* it calls generating certificate function defined in certificate manager.
 * This function is crypto sensitive.
-* @param {function} callback It is callback function that is invoked after 
+* @param {function} callback It is callback function that is invoked after
 * checking/creating certificates
 */
 session_configuration.setConfiguration = function (name, type, host, pzhName, callback) {
@@ -76,80 +59,137 @@ session_configuration.setConfiguration = function (name, type, host, pzhName, ca
     return;
   }
 
-  if (name === "" && (type === "Pzp" || type === "PzhFarm")){
-    name = os.hostname() + "_"+ type; //devicename_type
-  }
- 
-  fs.readFile(( webinosDemo+"/config/"+ name +".json"), function(err, data) {
-    if ( err && err.code=== "ENOENT" ) {
-      // CREATE NEW CONFIGURATION
-      var config = createConfigStructure(name, type);
-      config.name = name;
+  fetchDeviceName(name, type, function(name){
+    parsePortConfiguration(function() {
+      fs.readFile(( webinosDemo+"/config/"+ name +".json"), function(err, data) {
+          if(err && err.code ==="EACCES") {
+            log.error("configuration file read failed... try with sudo ");
+            process.exit();
+          }
+          if ( err && err.code=== "ENOENT" ) {
+          // CREATE NEW CONFIGURATION
+          var config = createConfigStructure(name, type);
+          config.name = name;
 
-      if (type === "Pzp" && (pzhName !== '' || pzhName !== null )) {
-        config.serverName = host+'/'+pzhName;
-      } else {
-        config.serverName = host;
-      }
-
-      // This self signed certificate is for getting connection certificate CSR.
-      try {  // From this certificate generated only csr is used
-        certificate.selfSigned(config, type, function(status, selfSignErr, conn_key, conn_cert, csr ) {
-          if(status === "certGenerated") {
-            session_configuration.storeKey(config.own.key_id, conn_key);
-            log.info("generated connection certificates");
-            if (type !== "Pzp") {
-              // This self signed certificate is  master certificate / CA
-              selfSignedMasterCert(config, function(config_master){
-                // Sign connection certifcate
-                session_configuration.signedCert(csr, config_master, null, 1, function(config_signed) { // PZH CONN CERT 1
-                  callback(config_signed, conn_key);
-                });
-              });
-            } else {
-              // PZP will only generate only 1 certificate
-              try{
-                  // Used for initial connection, will be replaced by cert received from PZH
-                config.own.cert = conn_cert.cert;
-                config.csr      = csr;
-                session_configuration.storeConfig(config, function() {
-                  callback(config, conn_key, config.csr);
-                });
-              } catch (err) {
-                log.error("storing configuration"+ err);
-                return;
-              }
-            }
+          if (type === "Pzp" && typeof pzhName !== "undefined" && (pzhName !== '' || pzhName !== null )) {
+            config.serverName = host+'/'+pzhName;
           } else {
-            log.error("generating self signed cert: ");
+            config.serverName = host;
+          }
+
+          // This self signed certificate is for getting connection certificate CSR.
+          try {  // From this certificate generated only csr is used
+            certificate.selfSigned(config, type, function(status, selfSignErr, conn_key, conn_cert, csr ) {
+              if(status === "certGenerated") {
+                session_configuration.storeKey(config.own.key_id, conn_key);
+                log.info("generated connection certificates");
+                if (type !== "Pzp") {
+                  // This self signed certificate is  master certificate / CA
+                  selfSignedMasterCert(config, function(config_master){
+                    // Sign connection certifcate
+                    session_configuration.signedCert(csr, config_master, null, 1, function(config_signed) { // PZH CONN CERT 1
+                      callback(config_signed, conn_key);
+                    });
+                  });
+                } else {
+                  // PZP will only generate only 1 certificate
+                  try{
+                      // Used for initial connection, will be replaced by cert received from PZH
+                    config.own.cert = conn_cert.cert;
+                    config.csr      = csr;
+                    session_configuration.storeConfig(config, function() {
+                      callback(config, conn_key, config.csr);
+                    });
+                  } catch (err) {
+                    log.error("storing configuration"+ err);
+                    return;
+                  }
+                }
+              } else {
+                log.error("generating self signed cert: ");
+                callback("undefined");
+              }
+            });
+          } catch (err) {
+            log.error("generating certificates" + err);
             callback("undefined");
           }
-        });
-      } catch (err) {
-        log.error("generating certificates" + err);
-        callback("undefined");
-      }
-    } else { // When configuration already exists, just load configuration file
-        var configData = data.toString("utf8");
-        config = JSON.parse(configData);
-        if (config.serverName.split('/') === -1 && pzhName === "") {
-          log.error("Please specify pzh-name to connect to pzh, else you will be running in virgin mode");
-        } else if (pzhName !== "") {
-          if (config.serverName.split('/') === -1){
-            config.serverName = config.serverName + '/' + pzhName;
-          }
+        } else { // When configuration already exists, just load configuration file
+            var configData = data.toString("utf8");
+            config = JSON.parse(configData);
+            if (config.serverName.split('/') === -1 && pzhName === "") {
+              log.error("Please specify pzh-name to connect to pzh, else you will be running in virgin mode");
+            } else if (pzhName !== "") {
+              if (config.serverName.split('/') === -1){
+                config.serverName = config.serverName + '/' + pzhName;
+              }
+            }
+            if (config.master.cert === "" ){
+              session_configuration.fetchKey(config.own.key_id, function(conn_key){
+                callback(config, conn_key, config.csr);
+              });
+            } else {
+              session_configuration.fetchKey(config.own.key_id, function(conn_key){
+                callback(config, conn_key);
+              });
+            }
         }
-        if (config.master.cert === "" ){
-          session_configuration.fetchKey(config.own.key_id, function(conn_key){
-            callback(config, conn_key, config.csr);
-          });
-        } else {
-          session_configuration.fetchKey(config.own.key_id, function(conn_key){
-            callback(config, conn_key);
-          });
-        }
+      });
+    });
+  });
+};
+
+function parsePortConfiguration(callback) {
+  fs.readFile("webinos_config.json", function(err,data) {
+    if (!err) {
+      var port_data = JSON.parse(data.toString());
+      session_configuration.port = {};
+      session_configuration.port.farmPort           = port_data.ports.farm;
+      session_configuration.port.farm_webServerPort = port_data.ports.farm_webServer;
+      session_configuration.port.pzp_webSocket = port_data.ports.pzp_webSocket;
+      session_configuration.port.pzp_web_webSocket  = port_data.ports.pzp_web_webSocket;
+      session_configuration.port.pzp_tlsServer      = port_data.ports.pzp_tlsServer;
+      session_configuration.port.pzp_zeroConf       = port_data.ports.pzp_zeroConf;
+      callback();
     }
   });
+}
+
+function fetchDeviceName(name, type, callback) {
+   //Get Android devices identity
+  if((os.type().toLowerCase() === "linux") && (os.platform().toLowerCase() === "android"))
+  {
+    var bridge = require("bridge");
+    /* If WiFi Mac address is prefered
+    * var prop = {
+    *	aspect: "WiFiNetwork",
+    *	property: "macAddress"
+    * }
+    */
+    var prop = {
+      aspect: "Device",
+      property: "identity"
+    }
+
+    function onsuccess(prop_value, prop)
+    {
+      name = prop_value + "_"+ type; //devicename_type
+      callback(name);
+    }
+
+    function onerror()
+    {
+      log.error("Android get device name returns error");
+    }
+
+    var devStatusModule = bridge.load('org.webinos.impl.DevicestatusImpl', this);
+    devStatusModule.getPropertyValue(onsuccess, onerror, prop);
+  } else  if (name === "" && (type === "Pzp" || type === "PzhFarm")){
+    name = os.hostname() + "_"+ type; //devicename_type
+    callback(name);
+  } else {
+    callback(name);
+  }
 };
 
 session_configuration.createDirectoryStructure = function (callback) {
@@ -307,4 +347,3 @@ function selfSignedMasterCert(config, callback){
     callback("undefined");
   }
 }
-
