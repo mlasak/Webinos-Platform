@@ -25,7 +25,7 @@ var log     = new session.common.debug("pzp_server");
 var global  = session.configuration;
 
 var PzpServer = function() {
-    
+
 }
 
 PzpServer.prototype.startServer = function (parent, callback) {
@@ -57,24 +57,22 @@ PzpServer.prototype.startServer = function (parent, callback) {
         clientSessionId = parent.config.pzhId + "/"+ cn; //parent.pzhId + "/" +cn;
         log.info("client authenticated " + clientSessionId) ;
 
-        if (parent.mode === global.modes[1]) {
+        if (parent.mode === global.modes[1] || parent.mode === global.modes[3]) {
           parent.mode = global.modes[3];
         } else {
           parent.mode = global.modes[2];
         }
 
         parent.state = global.states[2];
-	
-	if(typeof parent.connectedPzp[clientSessionId] !== "undefined")
-	{
+
+        if(typeof parent.connectedPzp[clientSessionId] !== "undefined") {
           parent.connectedPzp[clientSessionId].socket = conn;
           parent.connectedPzp[clientSessionId].state  = global.states[2];
-	}
-
-        var msg = parent.messageHandler.registerSender(parent.sessionId, clientSessionId);
-        parent.sendMessage(msg, clientSessionId);
-
-      } 
+        }
+          var msg = parent.messageHandler.registerSender(parent.sessionId, clientSessionId);
+          parent.sendMessage(msg, clientSessionId);
+          parent.connectedApp();
+      }
 
       conn.on("data", function (buffer) {
         try{
@@ -82,13 +80,15 @@ PzpServer.prototype.startServer = function (parent, callback) {
             session.common.processedMsg(self, obj, function(validMsgObj) {
               if(validMsgObj.type === "prop" && validMsgObj.payload.status === "findServices") {
                 log.info("trying to send Webinos Services from this RPC handler to " + validMsgObj.from + "...");
-                var services = parent.rpcHandler.getAllServices(validMsgObj.from);
+                var services = parent.discovery.getAllServices(validMsgObj.from);
                 var msg = {"type":"prop", "from":parent.sessionId, "to":validMsgObj.from, "payload":{"status":"foundServices", "message":services}};
                 msg.payload.id = validMsgObj.payload.message.id;
                 parent.sendMessage(msg, validMsgObj.from);
                 log.info("sent " + (services && services.length) || 0 + " Webinos Services from this RPC handler.");
-              }
-              else if (validMsgObj.type === "prop" && validMsgObj.payload.status === "pzpDetails") {
+              } else if(validMsgObj.type === "prop" && validMsgObj.payload.status === "foundServices") {
+                log.info("received message about available remote services.");
+                parent.serviceListener && parent.serviceListener(validMsgObj.payload);
+              } else if (validMsgObj.type === "prop" && validMsgObj.payload.status === "pzpDetails") {
                 if(parent.connectedPzp[validMsgObj.from]) {
                   parent.connectedPzp[validMsgObj.from].port = validMsgObj.payload.message;
                 } else {
@@ -115,19 +115,20 @@ PzpServer.prototype.startServer = function (parent, callback) {
         }
 
         if(status) {// No pzp is connected directly
-          if (parent.mode === global.modes[3]) {
+          if (parent.mode === global.modes[3] || parent.mode === global.modes[1]) {
             parent.mode = global.modes[1];
           } else if (parent.mode === global.modes[2]) {
             parent.state = global.states[0];
           }
-        } 
-        
+        }
+
         for (var key in parent.connectedPzp) {
           if (parent.connectedPzp[key].socket === conn){
-            parent.connectedPzp[key].state = global.states[0];
+            delete parent.connectedPzp[key];
           }
         }
         log.info('mode '+ parent.mode + ' state '+parent.state);
+        parent.connectedApp();
       });
 
       // It calls removeClient to remove PZP from connected_client and connectedPzp.
@@ -147,16 +148,17 @@ PzpServer.prototype.startServer = function (parent, callback) {
         }
 
         if(status) {// No pzp is connected directly
-          if (parent.mode === global.modes[3]) {
+          if (parent.mode === global.modes[3] || parent.mode === global.modes[1]) {
             parent.mode = global.modes[1];
           } else if (parent.mode === global.modes[2]) {
             parent.state = global.states[0];
           }
-        } 
+        }
 
         for (var key in parent.connectedPzp) {
           if (parent.connectedPzp[key].socket === conn){
-            parent.connectedPzp[key].state = global.states[0];
+            delete parent.connectedPzp[key];
+            parent.connectedApp();
           }
         }
         log.info('mode '+ parent.mode + ' state '+parent.state);
@@ -166,17 +168,17 @@ PzpServer.prototype.startServer = function (parent, callback) {
     server.on("error", function (err) {
       if (err.code === "EADDRINUSE") {
         log.error("address in use, trying next available port ... ");
-        session.configuration.pzpServerPort = parseInt(session.configuration.pzpServerPort, 10) + 1;
-        server.listen(session.configuration.pzpServerPort, parent.pzpAddress);
+        session.configuration.port.pzp_tlsServer = parseInt(session.configuration.port.pzp_tlsServer, 10) + 1;
+        server.listen(session.configuration.port.pzp_tlsServer, parent.pzpAddress);
       }
     });
 
     server.on("listening", function () {
-      log.info("listening as server on port :" + session.configuration.pzpServerPort + " address : "+ parent.pzpAddress);
+      log.info("listening as server on port :" + session.configuration.port.pzp_tlsServer);
       callback.call(parent, "started");
     });
 
-    server.listen(session.configuration.pzpServerPort, parent.pzpAddress);
+    server.listen(session.configuration.port.pzp_tlsServer);
   });
 };
 

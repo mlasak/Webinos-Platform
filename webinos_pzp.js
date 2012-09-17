@@ -73,9 +73,10 @@ process.argv.forEach(function (arg) {
   }
 });
 
-var pzpModules = [
+var fileParams = {},
+  pzpModules = [
   {name: "get42", params: {num: "21"}},
-  {name: "file", params: {}},
+  {name: "file", params: fileParams},
   {name: "geolocation", params: {connector : "geoip"}},
   {name: "applauncher", params: {}},
   {name: "sensors", params: {}},
@@ -123,7 +124,7 @@ fs.readFile(path.join(__dirname, "config-pzp.json"), function(err, data) {
       config.pzhHost = options.pzhHost;
     }
     if (options.pzhName) {
-      config.pzhName = options.pzhName;
+	config.pzhName = options.pzhName;
     }
     if (options.pzpHost) {
       config.pzpHost = options.pzpHost;
@@ -137,6 +138,7 @@ fs.readFile(path.join(__dirname, "config-pzp.json"), function(err, data) {
     if (options.preference) {
       config.preference = options.preference;
     }
+    fileParams.pzpHost = config.pzpHost;
     initializePzp(config, pzpModules);
 });
 
@@ -150,7 +152,7 @@ function initializePzp(config, pzpModules) {
 }
 
 //Added in order to be able to get the rpc handler from the current pzp
-function getPzp() {
+getPzp = function() {
   if (typeof pzpInstance !== "undefined") {
     return pzpInstance;
   } else {
@@ -158,13 +160,13 @@ function getPzp() {
   }
 }
 
-function getPzpId() {
+getPzpId = function() {
   if (typeof pzpInstance !== "undefined") {
     return pzpInstance.sessionId;
   }
 }
 
-function getPzhId() {
+getPzhId = function() {
   if (typeof pzpInstance !== "undefined") {
     return pzpInstance.config.pzhId;
   }

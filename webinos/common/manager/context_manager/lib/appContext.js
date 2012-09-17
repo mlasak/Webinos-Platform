@@ -41,12 +41,19 @@ if (commonPaths.storage === null) {
 }
 
 require('./storageCheck')(commonPaths, require(moduleRoot + '/data/storage.json'));
-
-var databasehelper = require('JSORMDB');
+var databasehelper;
+try{
+  databasehelper = require('JSORMDB');
+}
+catch(err){
+}
 var appVocDBpath = path.resolve(commonPaths.storage + '/pzp/appContextVocabulary.json');
-
-webinos.context.app.appVocDB = new databasehelper.JSONDatabase({path : appVocDBpath,transactional : false});
-console.log("Log DB Initialized");
+try{
+  webinos.context.app.appVocDB = new databasehelper.JSONDatabase({path : appVocDBpath,transactional : false});
+}
+catch(err){
+}
+console.log("Log DB Initialized in AppContext");
 
 //Method to insert a new field and/or Application Context Object
 //Example:
