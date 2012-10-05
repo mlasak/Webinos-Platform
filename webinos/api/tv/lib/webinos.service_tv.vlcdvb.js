@@ -27,11 +27,14 @@ var CHANNELS_CONF_FILE = __dirname + '/../tools/berlin-dvbt-channels.conf';
 // port for dvb streams
 var VLC_STREAM_PORT = 8888;
 
+// vlc http interface host
+var VLC_HOST = "localhost";
+
 // playback url for transcoded dvb stream
-var VLC_STREAM_URL = 'http://localhost:' + VLC_STREAM_PORT + '/tv.ogg';
+var VLC_STREAM_URL = 'http://'+VLC_HOST+':' + VLC_STREAM_PORT + '/tv.ogg';
 
 // bitrate for transcoding
-var VLC_TRANSCODE_BITRATE = '400'; //kbps
+var VLC_TRANSCODE_BITRATE = '4000'; //kbps
 
 // vlc http interface port
 var VLC_HTTP_PORT = 8020;
@@ -40,7 +43,7 @@ var VLC_HTTP_PORT = 8020;
 var VLC_PLAYLIST_OFFSET = 4;
 
 // command line to invoke vlc in transcoding and streaming mode
-var VLC_COMMANDLINE = 'cvlc ' + CHANNELS_CONF_FILE + ' --sout "#transcode{vcodec=theo,vb=400,scale=1,acodec=vorb,ab=128,channels=2,samplerate=44100}:http{dst=:' + VLC_STREAM_PORT + '/tv.ogg}" --sout-keep -I http --http-port ' + VLC_HTTP_PORT;
+var VLC_COMMANDLINE = 'cvlc ' + CHANNELS_CONF_FILE + ' --sout "#transcode{vcodec=theo,vb='+VLC_TRANSCODE_BITRATE+',scale=1,acodec=vorb,ab=128,channels=2,samplerate=44100}:http{dst=:' + VLC_STREAM_PORT + '/tv.ogg}" --sout-keep -I http --http-port ' + VLC_HTTP_PORT;
 
 (function() {
 
@@ -50,18 +53,39 @@ var VLC_COMMANDLINE = 'cvlc ' + CHANNELS_CONF_FILE + ' --sout "#transcode{vcodec
 	var util = require('util'),
 		exec = require('child_process').exec,
 		child;
+
+	/**
+	 * Determine local PZP network IF
+	 */
+	var os=require('os');
+	var ifaces=os.networkInterfaces();
+	for (var dev in ifaces) {
+	  ifaces[dev].forEach(function(details){
+	    if (details.family=='IPv4') {
+	      VLC_HOST=details.address;
+	    }
+	  });
+	}
+
+
 	
 	/**
 	 * Set the configuration parameters for the transcoder.
 	 */
 	exports.tv_setConf = function(params) {
-		if(params.streamPort){
-			VLC_STREAM_URL = 'http://localhost:' + params.streamPort + '/tv.ogg';
-		}
+
+		VLC_STREAM_PORT=params.streamPort?params.streamPort:VLC_STREAM_PORT;
+		VLC_HTTP_PORT=params.rcHttpPort?params.rcHttpPort:VLC_HTTP_PORT;
+		VLC_HOST=(params.config&&params.config.pzpHost)?params.config.pzpHost:VLC_HOST;
+		VLC_TRANSCODE_BITRATE=params.bitrate?params.bitrate:VLC_TRANSCODE_BITRATE;
+		VLC_STREAM_URL = 'http://'+VLC_HOST+':' + VLC_STREAM_PORT + '/tv.ogg';
+		
 		if(params.path){
 			CHANNELS_CONF_FILE = params.path;
 		}
-		VLC_COMMANDLINE = 'cvlc ' + CHANNELS_CONF_FILE + ' --sout "#transcode{vcodec=theo,vb='+(params.bitrate?params.bitrate:VLC_TRANSCODE_BITRATE)+',scale=1,acodec=vorb,ab=128,channels=2,samplerate=44100}:http{dst=:' + (params.streamPort?params.streamPort:VLC_STREAM_PORT) + '/tv.ogg}" --sout-keep -I http --http-port ' + (params.rcHttpPort?params.rcHttpPort:VLC_HTTP_PORT);
+		VLC_COMMANDLINE = 'cvlc ' + CHANNELS_CONF_FILE + ' --sout "#transcode{vcodec=theo,vb='+VLC_TRANSCODE_BITRATE+',scale=1,acodec=vorb,ab=128,channels=2,samplerate=44100}:http{dst=:' + VLC_STREAM_PORT + '/tv.ogg}" --sout-keep -I http --http-port ' + VLC_HTTP_PORT;
+
+
 
 	};
 
@@ -123,7 +147,7 @@ var VLC_COMMANDLINE = 'cvlc ' + CHANNELS_CONF_FILE + ' --sout "#transcode{vcodec
 		
 		function requestChannel(playlistId) {
 			var options = {
-					host: 'localhost',
+					host: '127.0.0.1', //local connection only!
 					port: VLC_HTTP_PORT,
 					path: '/requests/status.json?command=pl_play&id=' + playlistId
 			};
@@ -143,11 +167,11 @@ var VLC_COMMANDLINE = 'cvlc ' + CHANNELS_CONF_FILE + ' --sout "#transcode{vcodec
 
 			}).on('error', function(err) {
 				if (err.code === 'ECONNREFUSED' && tries > 0) {
-					console.log('got error, requesting channel change again.');
+					console.log('got error, requesting channel change again. ');
 					tries -= 1;
 					setTimeout(function() {
 						requestChannel(playlistId);
-					}, 1400);
+					}, 2500);
 					return;
 				}
 				if (typeof errorCallback === 'function') {
@@ -443,7 +467,6 @@ var VLC_COMMANDLINE = 'cvlc ' + CHANNELS_CONF_FILE + ' --sout "#transcode{vcodec
 	 * Adding a handler for the channel change event.
 	 * 
 	 */
-	// TODO: does not conform API Spec, but needs to be added!
 	TVDisplayManager.prototype.addEventListener = function(eventname,
 			channelchangeeventhandler, useCapture) {
 		if (eventname === 'channelchange'
