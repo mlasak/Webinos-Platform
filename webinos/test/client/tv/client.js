@@ -148,14 +148,6 @@ $(document).ready(function() {
 					}
 				}
 			break;
-			
-		case 'getEPGPIC':
-			if(isServiceDiscovered('TVManager','TVManager is not discovered yet.')){
-				discoveredServices['TVManager'].display.getEPGPIC('dummychannel',function(epg){
-					console.log(epg);
-				});
-			}
-			break;
 		default:
 			console.log('DEFAULT CASE: action for the button with id '+$(el).attr('id')+' not defined.');
 		}

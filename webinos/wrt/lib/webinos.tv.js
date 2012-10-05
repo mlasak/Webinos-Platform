@@ -46,19 +46,6 @@
 		});
 		return;
 	};
-	
-	//TODO: only internal temporarily use!
-	//This is only to bridge the missing Media Capture API and EPG functionality 
-	TVDisplayManager.prototype.getEPGPIC = function(channel, successCallback,
-			errorCallback) {
-		var rpc = webinos.rpcHandler.createRPC(that, "display.getEPGPIC", arguments);
-		webinos.rpcHandler.executeRPC(rpc, function(params) {
-			successCallback(params);
-		}, function(error) {
-			if(errorCallback) errorCallback();
-		});
-		return;
-	};
 
 	/**
 	 * Callback function when current channel changed successfully.

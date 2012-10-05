@@ -90,24 +90,6 @@
 	};
 	
 	/**
-	 * Get EPG info. (Spec tbd.)
-	 * @param channel Channel.
-	 * @param successCallback Success callback.
-	 * @param errorCallback Error callback.
-	 */
-	RemoteTVManager.prototype.display.getEPGPIC = function( params,  successCallback,  errorCallback){
-		//TODO: only internal temporarily use!
-		//This is only to bridge the missing Media Capture API and EPG functionality 
-        
-        tvmodule.tv.display.getEPGPIC(params[0],function(EPGPIC){
-			successCallback(EPGPIC);
-		},function(){
-			
-		});
-        
-	};
-	
-	/**
 	 * Get the available TV sources (e.g. tuners)
 	 * @param params not used.
 	 * @param successCallback Success callback.
