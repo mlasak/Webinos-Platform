@@ -166,8 +166,10 @@
 				var Service = services[i];
 				_registerObject.call(this, new Service(rpcHandler, modules[i].params));
 			}catch (error){
-				logger.error(error);
-				logger.error("Could not load module " + modules[i].name + " with message: " + error );
+                if (modules[i].name!='zap-and-shake'){ //zap-and-shake is modifying the file API and doesn't provide any service, so it fails
+				    logger.error(error);
+				    logger.error("Could not load module " + modules[i].name + " with message: " + error );
+                }
 			}
 		}
 	};
