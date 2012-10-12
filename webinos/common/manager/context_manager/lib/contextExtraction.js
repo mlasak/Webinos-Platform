@@ -26,7 +26,7 @@ try {
    var databasehelper = require('jsormdb');
 }
 catch (err) {
-    console.log('[ERROR] jsormdb node module is missing.', 'yellow+black_bg');
+    //console.log('[ERROR] jsormdb node module is missing.', 'yellow+black_bg');
 }
 
 //Initialize helper classes
