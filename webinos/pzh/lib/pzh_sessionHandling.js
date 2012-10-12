@@ -275,6 +275,23 @@ var Pzh = function () {
     }
   }
 
+    /**
+     * Habib's quick fix to propagate the services from one pzh to another
+     * @constructor
+     */
+    function SendToConnectedPZH(msg) {
+        var myKey, localServices;
+        if(connectedPzp.hasOwnProperty(msg.from)) {
+            for (myKey in connectedPzh) {
+                if(connectedPzh.hasOwnProperty(myKey)){
+                    localServices = self.discovery.getAllServices();
+                    msg = prepMsg(config.metaData.serverName, myKey, "registerServices", {services:localServices, from:config.metaData.serverName});
+                    sendMessage(msg, myKey);
+                }
+            }
+        }
+    }
+
   /**
    * Process incoming messages, message of type prop are only received while session is established. Rest of the time it
    * is usually RPC messages
@@ -295,6 +312,7 @@ var Pzh = function () {
       } else if(validMsgObj.type === "prop" && validMsgObj.payload.status === "registerServices") {
         logger.log("receiving Webinos services from pzh/pzp..."); // information sent by connecting PZP about services it supports. These details are then used by findServices
         self.discovery.addRemoteServiceObjects(validMsgObj.payload.message);
+        SendToConnectedPZH(validMsgObj); // Habib's fix to propagate the services between pzhs
       } else if(validMsgObj.type === "prop" && validMsgObj.payload.status === "findServices") {
         logger.log("trying to send webinos services from this RPC handler to " + validMsgObj.from + "...");
         sendFoundServices(validMsgObj);
