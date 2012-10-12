@@ -21,9 +21,8 @@ var pathModule = require("path")
 var LocalFileSystem = require("./lib/engine/local-file-system.js")
 
 var dependencies = require("find-dependencies")(__dirname)
-var pzp = dependencies.global.require(dependencies.global.pzp.location,
-    "lib/pzp.js")
 
-LocalFileSystem.init(pathModule.join(pzp.session.getWebinosPath(), "userData","file"))
+var wPaths = dependencies.global.require(dependencies.global.util.location, "lib/webinosPath.js");
+LocalFileSystem.init(pathModule.join(wPaths.webinosPath(), "userData","file"))
 
 exports.Service = require("./lib/exports/service.js")
