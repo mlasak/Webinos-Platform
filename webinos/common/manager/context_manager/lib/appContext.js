@@ -40,7 +40,7 @@ else {
         var databasehelper = require('jsormdb');
     }
     catch (err) {
-        console.log('[ERROR] jsormdb node module is missing.', 'yellow+black_bg');
+        //console.log('[ERROR] jsormdb node module is missing.', 'yellow+black_bg');
     }
     var appVocDBpath = path.resolve(commonPaths.storage + '/pzp/appContextVocabulary.json');
     try {
