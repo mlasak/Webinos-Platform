@@ -15,24 +15,20 @@
 * limitations under the License.
 *
 *******************************************************************************/
-var pzp   = require("./webinos/pzp/lib/pzp");
-var session = require("./webinos/pzp/lib/session");
-var debug = session.common.debug;
-var log   = new debug("pzp_start");
 
 var fs = require("fs"),
     path = require("path");
 
 var options = {};
 var pzpInstance;
+var pzp   = require("./webinos/pzp/lib/pzp");
 
 function help() {
   console.log("Usage: webinos_pzp [options]");
   console.log("Options:");
   console.log("--pzh-host=[ipaddress]   host of the pzh (default localhost)");
   console.log("--pzh-name=[name]        name of the pzh (default \"\")");
-  console.log("--pzp-name=[name]        name of the pzp (default WebinosPzp)");
-  console.log("--pzp-host=[name]        host of the pzp (default localhost)");
+  console.log("--pzp-name=[name]        name of the pzp (default \"\")");
   console.log("--auth-code=[code]       context debug flag (default DEBUG)");
   console.log("--preference=[option]    preference option (default hub, other option peer)");
   console.log("--widgetServer           start widget server");
@@ -51,11 +47,8 @@ process.argv.forEach(function (arg) {
       case "--pzh-name":
         options.pzhName = parts[1];
         break;
-      case "--pzp-host":
-        options.pzpHost = parts[1];
-        break;
-      case "--pzp-name":
-        options.pzpName = parts[1];
+      case "--friendly-name":
+        options.friendlyName = parts[1];
         break;
       case "--preference":
         options.preference = parts[1];
@@ -84,6 +77,7 @@ process.argv.forEach(function (arg) {
 var fileParams = {},
   pzpModules = [
   {name: "get42", params: {num: "21"}},
+  {name: "zap-and-shake", params: {}},
   {name: "file", params: fileParams},
   {name: "geolocation", params: {connector : "geoip"}},
   {name: "applauncher", params: {}},
@@ -119,8 +113,8 @@ fs.readFile(path.join(__dirname, "config-pzp.json"), function(err, data) {
     if (!config.pzpHost) {
       config.pzpHost="localhost";
     }
-    if (!config.pzpName) {
-      config.pzpName = "";
+    if (!config.friendlyName) {
+      config.friendlyName = "";
     }
     if (!config.code) {
       config.code = "DEBUG";
@@ -137,8 +131,8 @@ fs.readFile(path.join(__dirname, "config-pzp.json"), function(err, data) {
     if (options.pzpHost) {
       config.pzpHost = options.pzpHost;
     }
-    if (options.pzpName) {
-      config.pzpName = options.pzpName;
+    if (options.friendlyName) {
+      config.friendlyName = options.friendlyName;
     }
     if (options.code) {
       config.code = options.code;
@@ -146,7 +140,11 @@ fs.readFile(path.join(__dirname, "config-pzp.json"), function(err, data) {
     if (options.preference) {
       config.preference = options.preference;
     }
-    fileParams.pzpHost = config.pzpHost;
+    if (config.pzhName !== "") {
+      config.hostname = config.pzhHost+'/'+config.pzhName;
+    } else {
+      config.hostname = config.pzhHost;
+    }
     initializePzp(config, pzpModules);
 });
 
@@ -161,13 +159,13 @@ function initializeWidgetServer() {
         var wrtConfig = {};
         wrtConfig.runtimeWebServerPort = wrtPort;
         wrtConfig.pzpWebSocketPort = session.configuration.port.pzp_webSocket;
-        fs.writeFile((session.common.webinosConfigPath() + '/wrt/webinos_runtime.json'), JSON.stringify(wrtConfig, null, ' '), function (err) {
+        fs.writeFile((pzp.session.getWebinosPath()+'/wrt/webinos_runtime.json'), JSON.stringify(wrtConfig, null, ' '), function (err) {
           if (err) {
             log.error('error saving runtime configuration file: ' + err);
           } else {
             log.info('saved configuration runtime file');
           }
-        });            
+        });
       } else {
             log.error('error starting wrt server: ' + msg);
       }
@@ -176,34 +174,12 @@ function initializeWidgetServer() {
 }
 
 function initializePzp(config, pzpModules) {
-  pzpInstance = new pzp.session();
-  pzpInstance.initializePzp(config, pzpModules, function(result) {
-    log.info("initializePzp result is: " + result);
-    if (result === "startedPZP"){
-      log.info("sucessfully started");
+  pzp.session.initializePzp(config, pzpModules, function(status, result) {
+    if (status) {
       if (options.startWidgetServer)
         initializeWidgetServer();
+    } else {
+      console.log("unsuccessful in starting PZP" + result);
     }
   });
-}
-
-//Added in order to be able to get the rpc handler from the current pzp
-getPzp = function() {
-  if (typeof pzpInstance !== "undefined") {
-    return pzpInstance;
-  } else {
-    return null;
-  }
-}
-
-getPzpId = function() {
-  if (typeof pzpInstance !== "undefined") {
-    return pzpInstance.sessionId;
-  }
-}
-
-getPzhId = function() {
-  if (typeof pzpInstance !== "undefined") {
-    return pzpInstance.config.pzhId;
-  }
 }
