@@ -45,8 +45,6 @@ public class WebViewClient extends android.webkit.WebViewClient {
         Log.i("ABOT","onPage started called");
         super.onPageStarted(webView, url, favicon);
         WebView wgtView = (WebView) webView;
-        webView.addJavascriptInterface(activity.getClientSocket(), "__webinos");
-        webView.loadData("", "text/html", null); //Reload page to enable the object...
         try {
             wgtView.injectScripts(new String[] {
                     AssetUtils.getAssetAsString(WrtManager.getInstance(),
