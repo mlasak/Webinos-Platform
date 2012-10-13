@@ -26,9 +26,9 @@
      * messaging/eventing system will be used
      */
     function createCommChannel(successCB) {
-        /* try { //Commenting out as we don't have that yet...
+        try {
             channel = new WebinosSocket();
-        } catch(e1) {*/
+        } catch(e1) {
 	        try {
 	            var port = parseInt(location.port) + 1;
 	            if (isNaN(port)) {
@@ -45,7 +45,7 @@
 	        } catch(e2) {
 	            channel  = new MozWebSocket('ws://'+window.location.hostname+':'+port);
 	        }
-       /* }  //From the exception*/
+        }
         webinos.session.setChannel(channel);
 
         channel.onmessage = function(ev) {
