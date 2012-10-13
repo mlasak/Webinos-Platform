@@ -44,6 +44,15 @@ public class WebViewClient extends android.webkit.WebViewClient {
 			Bitmap favicon) {
         Log.i("ABOT","onPage started called");
         super.onPageStarted(webView, url, favicon);
+        WebView wgtView = (WebView) webView;
+        webView.addJavascriptInterface(activity.getClientSocket(), "__webinos");
+        try {
+            wgtView.injectScripts(new String[] {
+                    AssetUtils.getAssetAsString(WrtManager.getInstance(),
+                            ClientSocket.SOCKETJS_ASSET), "alert('Injected socket');"});
+        } catch (IOException ioe) {
+            Log.v(TAG, "Unable to inject scripts; exception: ", ioe);
+        }
 	}
 
 	@Override
@@ -51,13 +60,10 @@ public class WebViewClient extends android.webkit.WebViewClient {
         super.onPageFinished(webView, url);
         Log.i("ABOT","onPage finished called");
         WebView wgtView = (WebView) webView;
-        webView.addJavascriptInterface(activity.getClientSocket(), "__webinos");
         try {
             wgtView.injectScripts(new String[] {
                     AssetUtils.getAssetAsString(WrtManager.getInstance(),
-                            ClientSocket.SOCKETJS_ASSET),
-                    AssetUtils.getAssetAsString(WrtManager.getInstance(),
-                            ClientSocket.WEBINOSJS_ASSET) });
+                            ClientSocket.WEBINOSJS_ASSET), "alert('Injected webinos');" });
         } catch (IOException ioe) {
             Log.v(TAG, "Unable to inject scripts; exception: ", ioe);
         }
