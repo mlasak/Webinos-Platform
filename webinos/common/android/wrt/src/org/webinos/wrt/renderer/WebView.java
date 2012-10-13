@@ -31,6 +31,7 @@ public class WebView extends android.webkit.WebView {
 	}
 
 	public void injectScript(String script) {
+        Log.i("ABOT","inject script called:"+ script);
 		try {
 			String functionBody = "var s=document.createElement('script');"
 					+ "s.text=" + script + ";"
@@ -45,6 +46,7 @@ public class WebView extends android.webkit.WebView {
 	}
 
 	public void injectScripts(String[] scripts) {
+        Log.i("ABOT","inject scripts called");
 		try {
 			String functionBody = "var target = document.getElementsByTagName('head')[0] || document.firstChild || document;"
 					+ "var child = target.firstChild;"
@@ -64,6 +66,7 @@ public class WebView extends android.webkit.WebView {
 	}
 
 	public void callScript(final String script) {
+        Log.i("ABOT","call script called:" + script);
 		Log.v("org.webinos.wrt.renderer.WebView.callScript()", script);
 		try {
 			getHandler().post(new Runnable() {
