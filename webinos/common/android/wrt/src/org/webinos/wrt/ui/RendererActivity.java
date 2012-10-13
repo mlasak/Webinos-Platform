@@ -79,8 +79,8 @@ public class RendererActivity extends Activity implements WrtManager.LaunchListe
 		webView.setWebChromeClient(new WebChromeClient(this));
 		socket = new ClientSocket(webView, widgetConfig, instanceId);
         // Inject the java object
-        webView.addJavascriptInterface(socket "__webinos");
-        webView.loadData("", "text/html", null); //Reload page to enable the object...
+        webView.addJavascriptInterface(socket, "__webinos");
+        //webView.loadData("", "text/html", null); //Reload page to enable the object...
         // Load the wifget page
 		webView.loadUrl(widgetConfig.getStartUrl());		
 
