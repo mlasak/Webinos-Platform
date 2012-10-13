@@ -64,7 +64,7 @@ public class WebView extends android.webkit.WebView {
 			loadUrl("javascript:(function(){alert('abot script loading');" + functionBody + "})()");
             Log.i("ABOT", "Injected the following function:" + functionBody);
 		} catch (Throwable t) {
-			Log.v("org.webinos.wrt.renderer.WebView",
+			Log.e("org.webinos.wrt.renderer.WebView",
 					"Error in injecting script", t);
 		}
 	}
