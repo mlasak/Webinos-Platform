@@ -28,7 +28,7 @@ public class WebView extends android.webkit.WebView {
 	public WebView(Context context, AttributeSet as) {
 		super(context, as);
 		getSettings().setJavaScriptEnabled(true);
-        getSettings().setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY); //TO avoid the scrollbar issue
+        setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY); //TO avoid the scrollbar issue
         //http://forum.jquery.com/topic/extra-vertical-white-space-at-right-on-screen-for-android-phone
 	}
 
