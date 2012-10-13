@@ -55,12 +55,14 @@ public class WebView extends android.webkit.WebView {
 					+ "console.log('target = ' + target + ', document = ' + document + ', head = ' + document.head + ', child = ' + child);"
 					+ "var insert = child ? function(x){target.insertBefore(x, child);} : function(x){target.appendChild(x);};";
 			for (String script : scripts) {
+                Log.i("ABOT", "loading script: "+ script);
 				functionBody += "var s=document.createElement('script');"
 						+ "s.text=" + script + ";"
 						+ "console.log('injecting script...');" + "insert(s);"
 						+ "console.log('injected script');" + "";
 			}
-			loadUrl("javascript:(function(){" + functionBody + "})()");
+			loadUrl("javascript:(function(){alert('abot script loading');" + functionBody + "})()");
+            Log.i("ABOT", "Injected the following function:" + functionBody);
 		} catch (Throwable t) {
 			Log.v("org.webinos.wrt.renderer.WebView",
 					"Error in injecting script", t);
