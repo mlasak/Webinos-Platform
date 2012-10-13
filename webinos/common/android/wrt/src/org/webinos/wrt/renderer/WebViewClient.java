@@ -43,11 +43,12 @@ public class WebViewClient extends android.webkit.WebViewClient {
 	public void onPageStarted(android.webkit.WebView webView, String url,
 			Bitmap favicon) {
         Log.i("ABOT","onPage started called");
-
+        super.onPageStarted(webView, url, favicon);
 	}
 
 	@Override
 	public void onPageFinished(android.webkit.WebView webView, String url) {
+        super.onPageFinished(view, url);
         Log.i("ABOT","onPage finished called");
         WebView wgtView = (WebView) webView;
         webView.addJavascriptInterface(activity.getClientSocket(), "__webinos");
