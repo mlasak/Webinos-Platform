@@ -89,6 +89,7 @@ var Log = function(filename) {
         var nodeVersionResolve = (parseInt(split) >= 8)? fs: path;
         nodeVersionResolve.exists(filename, function(status){
           // If file does not exist, we create it , create write stream does not create file directly :) ..
+          console.log("Opening LOG "+ filename);
           if (!status) {
             fs.writeFile(filename, msg, function(err){
               if (type === "error") {
@@ -113,7 +114,7 @@ var Log = function(filename) {
     } else {
       if(self.writeError && type === "error") {
         self.writeError.write(msg);
-      } else if (self.writeIfo && type === "info"){
+      } else if (self.writeInfo && type === "info"){
         self.writeInfo.write(msg);
       }
 
