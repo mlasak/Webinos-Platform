@@ -89,21 +89,21 @@ var Log = function(filename) {
         var nodeVersionResolve = (parseInt(split) >= 8)? fs: path;
         nodeVersionResolve.exists(filename, function(status){
           // If file does not exist, we create it , create write stream does not create file directly :) ..
-          console.log("Opening LOG "+ filename);
           if (!status) {
             fs.writeFile(filename, msg, function(err){
-              if (type === "error") {
+              //if (type === "error") {// ABOT: Will create both because you check for both of them on TOP
                 self.writeError = fs.createWriteStream(filename, { flags: "a", encoding:"utf8"});
-              } else {
+              //} else {
                 self.writeInfo  = fs.createWriteStream(filename, { flags: "a", encoding:"utf8"});
-              }
+              //}
             });
           } else {
-            if (type === "error") {
+              // ABOT: Will create both because you check for both of them on TOP
               self.writeError = fs.createWriteStream(filename, { flags: "a", encoding:"utf8"});
+              self.writeInfo  = fs.createWriteStream(filename, { flags: "a", encoding:"utf8"});
+            if (type === "error") {
               self.writeError.write(msg);
             } else {
-              self.writeInfo  = fs.createWriteStream(filename, { flags: "a", encoding:"utf8"});
               self.writeInfo.write(msg);
             }
           }
