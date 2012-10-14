@@ -37,6 +37,9 @@ exports.getContentType = function(uri) {
 		case ".gif":
 			contentType = "image/gif";
 			break;
+        case ".svg": //Request from a candidate on 1st app contest
+            contentType = "image/svg+xml";
+            break;
 	}
 	return {"Content-Type": contentType};
 }
