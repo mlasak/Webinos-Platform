@@ -26,6 +26,7 @@
 		<file name="wrt/lib/webinos.sensors.js"/>
             	<file name="wrt/lib/webinos.events.js"/>
             	<file name="wrt/lib/webinos.applauncher.js"/>
+            	<file name="wrt/lib/webinos.webnotification.js"/>
                 <file name="wrt/lib/webinos.vehicle.js"/>
                 <file name="wrt/lib/webinos.deviceorientation.js"/>
             	<file name="wrt/lib/webinos.context.js"/>

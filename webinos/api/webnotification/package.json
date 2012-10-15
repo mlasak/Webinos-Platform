@@ -1,0 +1,25 @@
+{ "name": "katwarn"
+, "publishConfig": { "tag": "alpha" }
+, "description": "WebNotification API"
+, "keywords": [ "webinos", "webnotificqtion", "API"]
+, "version": "0.0.1"
+, "homepage": "http://webinos.org/"
+, "author": "Andre Paul <andre.paul@fokus.fraunhofer.de>"
+, "repository":
+  { "type": "git"
+  , "url": "http://dev.webinos.org/git/wp4.git"
+  }
+, "bugs":
+  { "email": "andre.paul@fokus.fraunhofer.de"
+  , "url": ""
+  }
+, "directories": { "lib": "./lib"
+                 }
+, "main": "./lib/webnotification.js"
+, "dependencies":
+  {
+  }
+, "bundleDependencies":
+  [
+  ]
+}
