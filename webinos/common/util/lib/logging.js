@@ -142,3 +142,4 @@ var LogInstance = function(name) {
   }
 };
 module.exports = Log;
+
