@@ -71,7 +71,10 @@ var icon = pzp.session.getWebinosPath() + "/" + params[1].iconUrl;
 				return;
 			}
 
-			successCB();
+			if(stdout.indexOf("CLICKED") > -1) {
+				successCB("onClick");
+			}
+			else successCB("onShow");
 		});
 	
 }

@@ -24,7 +24,7 @@
                              {onBind: function (service) {
 								new service.WebNotification("Example Title", {body: "This is an example body.", iconUrl: "webnotification/purple-web.png"});
 //     							service.notify("Example Title", {body: "This is an example body.", iconUrl: "webnotification/purple-web.png"});
-     							                           	 
+     							service.onClick = function (res){document.getElementById("out").innerHTML = res};                        	 
                              }
                 	 	}
                 	 );
@@ -44,5 +44,6 @@
 </head>
 <body>
 	<input class="button" value="Notify" type="button" onclick='sendNoti()'>
+	<div id="out"></div>
 </body>
 </html>

@@ -43,6 +43,9 @@
 			webinos.rpcHandler.executeRPC(rpc,
 					function (params){
 						//on success
+					 	if(that.onClick){
+					 		that.onClick(params);
+					 	}
 					},
 					function (error){
 						// on error
