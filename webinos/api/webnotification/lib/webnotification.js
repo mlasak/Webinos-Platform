@@ -18,6 +18,11 @@
 (function() {
 	var exec = require('child_process').exec;
 
+var dependencies = require("find-dependencies")(__dirname)	
+var pzp = dependencies.global.require(dependencies.global.pzp.location,
+    "lib/pzp.js")
+	console.log("PZP PATH: " + pzp.session.getWebinosPath());	
+	
 /**
  * ...
  * 
@@ -54,6 +59,10 @@ WebNotificationModule.prototype.notify = function(params, successCB, errorCB, ob
 	var body = params[1].body;
 	var icon = params[1].iconUrl;
 	
+var icon = pzp.session.getWebinosPath() + "/" + params[1].iconUrl;
+			console.log("LAUNCHING: " + icon)	
+
+
 	exec("notify-send \"" + title + "\" \"" + body + "\" -i \"" + icon + "\"", function(error, stdout, stderr){
 			console.log("Result: " + error + " " + stdout + " " + stderr);
 
