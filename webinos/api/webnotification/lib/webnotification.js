@@ -21,7 +21,14 @@
 var dependencies = require("find-dependencies")(__dirname)	
 var pzp = dependencies.global.require(dependencies.global.pzp.location,
     "lib/pzp.js")
-	console.log("PZP PATH: " + pzp.session.getWebinosPath());	
+	//console.log("PZP PATH: " + pzp.session.getWebinosPath());	
+
+	var not = null;
+		
+	if(process.platform=='android')
+	{
+		not = require('bridge').load('org.webinos.impl.WebNotificationManagerImpl', this);
+	}
 	
 /**
  * ...
@@ -62,8 +69,9 @@ WebNotificationModule.prototype.notify = function(params, successCB, errorCB, ob
 var icon = pzp.session.getWebinosPath() + "/" + params[1].iconUrl;
 			console.log("LAUNCHING: " + icon)	
 
-
-	exec("notify-send \"" + title + "\" \"" + body + "\" -i \"" + icon + "\"", function(error, stdout, stderr){
+	if(process.platform!=='android')
+	{
+		exec("notify-send \"" + title + "\" \"" + body + "\" -i \"" + icon + "\"", function(error, stdout, stderr){
 			console.log("Result: " + error + " " + stdout + " " + stderr);
 
 			if (error && typeof errorCB === "function") {
@@ -76,6 +84,24 @@ var icon = pzp.session.getWebinosPath() + "/" + params[1].iconUrl;
 			}
 			else successCB("onShow");
 		});
+	}
+	else //on android
+	{
+	  var toAndroid = [];
+	  toAndroid.push(title);
+	  toAndroid.push(body);
+	  toAndroid.push(icon);
+	  not.notify(toAndroid,function (res) {
+		  	if (res == "onclick") successCB("onClick");
+		  	console.log("onClick"); 
+		  	console.log("res");
+		  }, 
+		  function (err) {console.log("err")});
+	}
+
+
+
+	
 	
 }
 

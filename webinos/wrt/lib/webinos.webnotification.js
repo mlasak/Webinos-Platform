@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 * 
-* Copyright 2011 Alexander Futasz, Fraunhofer FOKUS
+* Copyright 2011 Andre Paul, Fraunhofer FOKUS
 ******************************************************************************/
 (function() {
 
