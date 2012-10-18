@@ -18,6 +18,10 @@
 (function() {
 	var exec = require('child_process').exec;
 
+var dependencies = require("find-dependencies")(__dirname)	
+var pzp = dependencies.global.require(dependencies.global.pzp.location,
+    "lib/pzp.js")
+	console.log("PZZZZZZZZZZZP PATH: " + pzp.session.getWebinosPath());
 	/**
 	 * Webinos AppLauncher service constructor (server side).
 	 * @constructor
@@ -65,6 +69,25 @@
 	WebinosAppLauncherModule.prototype.launchApplication = function (params, successCB, errorCB){
 		console.log("launchApplication was invoked. AppID: " +  params.applicationID + " Parameters: " + params.params);
 		
+		
+		if (endsWith(params.applicationID, ".wgt")){
+			
+			var path = pzp.session.getWebinosPath() + "/" + params.applicationID;
+			console.log("LAUNCHING: " + path)
+			
+			exec(path, function(error, stdout, stderr){
+				console.log("Result: " + error + " " + stdout + " " + stderr);
+
+				if (error && typeof errorCB === "function") {
+					errorCB();
+					return;
+				}
+
+				successCB();
+			});
+			return;
+		}
+
 		if (!/^http[s]?:\/{2}/.test(params.applicationID) || !this.browserExecPath) {
 			console.log("applauncher: only http[s] AppIds are allowed or no browser available.");
 			if (typeof errorCB === "function") {
@@ -97,6 +120,11 @@
 		console.log("appInstalled was invoked");
 		errorCB();
 	};
+	
+	function endsWith(str, suffix) {
+		console.log(str + " with " + suffix);
+		return str.indexOf(suffix, str.length - suffix.length) !== -1;
+	}
 
 	exports.Service = WebinosAppLauncherModule;
 
