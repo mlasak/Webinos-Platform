@@ -1,0 +1,143 @@
+<html>
+<head>
+	<title>webinos rpc</title>
+	<script type="text/javascript" src="../webinos.js"></script>
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" ></script>
+	<script type="text/javascript">
+
+	function logObj(obj, name){
+		for (var myKey in obj){
+			console.log(name + "["+myKey +"] = "+obj[myKey]);
+			if (typeof obj[myKey] == 'object') logObj(obj[myKey], name + "." + myKey);
+		}
+	}
+	
+            $(document).ready(function() {
+                 
+                function printInfo(data) {
+                    $('#message').append('<li>'+data.payload.message+'</li>');
+                }
+                webinos.session.addListener('info', printInfo);
+                
+                
+            	    sensors = [];
+                    $('#findService').bind('click', function() {
+
+                	    webinos.discovery.findServices(new ServiceType('http://webinos.org/api/actuator'), 
+						{onFound: function (service) {
+							
+							
+							 $("<option value=" + service.serviceAddress + " >" +service.serviceAddress + "</option>").appendTo("#pzh_pzp_list");
+							 sensors[service.serviceAddress] = service;
+							
+                	    	$('#messages').append('<li> New Sensor found: ' + service.api + '</li>');
+
+                	    	logObj(service, "Service");
+                	    }});
+                    });
+                    
+                    $('#cls').bind('click', function() {
+                    	document.getElementById("messages").innerHTML = "";
+                    }); 
+                    
+                    $('#bind').bind('click', function() {
+                    	sensorToUse = sensors[$('#pzh_pzp_list option:selected').val()];
+                    	
+
+                        	sensorToUse.bind({onBind:function(){
+                        		
+                        		logObj(sensors,"sensors");
+                        		$('#messages').append('<li> Sensor ' + sensorToUse.api + ' bound.</li>');
+                    			
+                        		if (sensorToUse.range){
+                					
+                					for (var x = 0; x < sensorToUse.range.length; x++){
+                						$('#sensorResult').append('<li> Range ' + x + ' min: ' + sensorToUse.range[x].minValue + ' max: ' + sensorToUse.range[x].maxValue + '</li>');
+                					}
+                				}
+   
+                    	    	$('#messages').append("<li> Unit: " + sensorToUse.unit + '</li>');
+                    	    	$('#messages').append("<li> Vendor: " + sensorToUse.vendor + '</li>');  
+                    	    	$('#messages').append("<li> Version: " + sensorToUse.version + '</li>'); 
+                        	}});
+            	    	
+                    }); 
+                    
+                    
+
+                    
+                    $('#set').bind('click', function() {
+                    	var val = new Array();
+                    	val[0] = document.getElementById("val1").selectedIndex;
+                    	val[1] = document.getElementById("val2").selectedIndex;
+                    	val[2] = document.getElementById("val3").selectedIndex;
+                    	val[3] = document.getElementById("val4").selectedIndex;
+                    	
+                    	sensorToUse.setValue(val, 
+                    				function(event){
+                            			document.getElementById("sensorResult").innerHTML = "";
+                            			
+                            			
+                        				$('#sensorResult').append('<li> Sensor Event from: ' + sensorToUse.api + '</li>');
+                          				$('#sensorResult').append('<li> Sensor Type: ' + event.actuatorType + '</li>');
+                        				$('#sensorResult').append('<li> Sensor Id: ' + event.actuatorId + '</li>');
+                        				
+                        				if (event.actualValue){
+                        					
+                        					for (var x = 0; x < event.actualValue.length; x++){
+                        						$('#sensorResult').append('<li> Value ' + x + ': ' + event.actualValue[x] + '</li>');
+                        					}
+                        				}
+
+                        		
+                        			},
+                    		function(domerro){
+                    			$('#sensorResult').append('<li> Error: ' + domerro + '</li>');
+                    		}
+                    	);
+                        
+                     }); 
+
+            });
+        </script>
+     
+</head>
+<body>
+	<div >
+		<div >
+			<p>
+				<div> Found Actuator APIs @ <select id="pzh_pzp_list"> <option> </option> </select> <br> </div>
+				<button id="findService">Find Sensors</button>
+				<button id="cls">Clear</button>
+				<button id="bind">Bind Sensor</button>
+		    	<button id="set">Set Values</button>
+		    	<select id="val1">
+		    		<option>0</option>
+		    		<option>1</option>
+		    	</select>
+		    			    	<select id="val2">
+		    		<option>0</option>
+		    		<option>1</option>
+		    	</select>
+		    			    	<select id="val3">
+		    		<option>0</option>
+		    		<option>1</option>
+		    	</select>
+		    			    	<select id="val4">
+		    		<option>0</option>
+		    		<option>1</option>
+		    	</select>
+			</p>
+			<p>
+				<ul id="sensorResult">
+                   <br><br><br><br><br><br><br><br>
+			</ul>
+			</p>
+		</div>
+		<div >
+			<ul id="messages">
+			</ul>
+		</div>
+	</div>
+</body>
+</html>

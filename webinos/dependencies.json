@@ -8,6 +8,10 @@
       "name": "WebNotification module",
       "location": "api/webnotification/"
     },
+    "actuator": {
+      "name": "Actuator module",
+      "location": "api/actuator/"
+    },
     "authentication": {
       "name": "Authentication",
       "location": "api/authentication/"
