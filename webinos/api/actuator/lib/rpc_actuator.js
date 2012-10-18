@@ -17,6 +17,12 @@
 ******************************************************************************/
 (function() {
 
+var HOST = "localhost";
+var PORT = "7070";
+
+var http = require('http');
+var url = require('url')
+	
 /**
  * Webinos Actuator service constructor (server side).
  * @constructor
@@ -37,6 +43,7 @@ var ActuatorModule = function(rpcHandler) {
 		
 		if (value.length >= 1){ 
 			var ev = new ActuatorEvent(value);
+			sendRequest(value);
 			successHandler(ev);
 		}
 		else{
@@ -46,6 +53,48 @@ var ActuatorModule = function(rpcHandler) {
 	};
 
 };
+
+function sendRequest(values){
+	console.log("sendRequest(" + url + ");");
+
+			
+			//TODO send request to adruiono
+			
+			// http://host:port/?a=0,0,0,0
+
+			var path = "/?a=";
+			for (i = 0; i < values.length; i++){
+				path += values[i];
+				if (i != values.length -1) path += ",";
+			}
+
+  // An object of options to indicate where to post to
+  var post_options = {
+      host: HOST,
+      port: PORT,
+      path: path,
+      method: 'GET',
+      headers: {
+          'Content-Type': 'Content-Type: text/plain',
+          'Content-Length':0
+      }
+  };
+
+  // Set up the request
+  var post_req = http.request(post_options, function(res) {
+      res.setEncoding('utf8');
+      res.on('data', function (chunk) {
+          console.log('Response: ' + chunk);
+      });
+  });
+
+  // post the data
+  post_req.write("");
+  post_req.end();
+
+
+
+}
 
 ActuatorModule.prototype = new RPCWebinosService;
 
