@@ -13,15 +13,25 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 * 
-* Copyright 2012 André Paul, Fraunhofer FOKUS
+* Copyright 2012 Andre Paul, Fraunhofer FOKUS
 ******************************************************************************/
 (function() {
 	var exec = require('child_process').exec;
+	
+
+	var androidLauncher = null;
+		
+	if(process.platform=='android')
+	{
+		androidLauncher = require('bridge').load('org.webinos.impl.AppLauncherManagerImpl', this);
+	}
+
+
 
 var dependencies = require("find-dependencies")(__dirname)	
 var pzp = dependencies.global.require(dependencies.global.pzp.location,
     "lib/pzp.js")
-	console.log("PZZZZZZZZZZZP PATH: " + pzp.session.getWebinosPath());
+	//console.log("PZZZZZZZZZZZP PATH: " + pzp.session.getWebinosPath());
 	/**
 	 * Webinos AppLauncher service constructor (server side).
 	 * @constructor
@@ -69,6 +79,19 @@ var pzp = dependencies.global.require(dependencies.global.pzp.location,
 	WebinosAppLauncherModule.prototype.launchApplication = function (params, successCB, errorCB){
 		console.log("launchApplication was invoked. AppID: " +  params.applicationID + " Parameters: " + params.params);
 		
+		if(process.platform=='android'){
+			  androidLauncher.launchApplication(
+				  function (res) {
+				  	successCB();
+				  }, 
+				  function (err) {
+					errorCB(err)
+				  },
+				  params.applicationID 
+			  );
+			  return;
+		}
+
 		
 		if (endsWith(params.applicationID, ".wgt")){
 			
