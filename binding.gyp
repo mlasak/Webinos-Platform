@@ -10,14 +10,7 @@
       'webinos/api/devicestatus/src/binding.gyp:devicestatus',
       'webinos_wrt#host',
       'webinos/api/discovery/src/binding.gyp:bluetooth',
-    ],
-    'conditions': [ 
-      [ 'OS=="win"', {
-        'dependencies': [ # Prompt man is only implemented on windows
-            'webinos/common/manager/policy_manager/src/promptMan/binding.gyp:promptMan',
-          ],
-        },
-      ],
+      'webinos/common/manager/policy_manager/src/promptMan/binding.gyp:promptMan',
     ],
    },
    {
@@ -33,20 +26,10 @@
           'build/Release/bluetooth.node',
           'build/Release/nativedevicestatus.node',
           'build/Release/pm.node',
+          'build/Release/promptMan.node',
         ],
         'destination': 'node_modules/',
       }],
-    'conditions': [ 
-        [ 'OS=="win"', {
-            'copies': [{
-                'files': [
-                    'build/Release/promptMan.node',
-            ],
-            'destination': 'node_modules/',
-            }],
-        },
-        ],
-    ],
     }, # end webinos_wrt
   ], 
 }

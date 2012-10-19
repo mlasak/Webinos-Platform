@@ -21,14 +21,16 @@
 (function () {
 	if (typeof webinos === 'undefined')
 		webinos = {};
-
+	var logger = console;
+//    var policyManager = {'enforceRPCRequest':function(scope, jsonRPC, from, msgid){handleRequest.call(scope, jsonRPC, from, msgid)}};
 	if (typeof module === 'undefined') {
 		var exports = {};
-		var utils = webinos.utils || (webinos.utils = {});
 	} else {
-		var utils = require('./webinos.utils.js');
 		var exports = module.exports = {};
-	}
+		var webinos_= require("find-dependencies")(__dirname);
+		logger  = webinos_.global.require(webinos_.global.util.location, "lib/logging.js")(__filename);
+//        policyManager = webinos_.global.require(webinos_.global.manager.policy_manager.location).policyManager;
+	}	
 
 	var idCount = 0;
 	//Code to enable Context from settings file
@@ -71,7 +73,7 @@
 
 		this.messageHandler = {
 				write: function() {
-					console.log('INFO: [RPC] could not execute RPC, messageHandler was not set.');
+					logger.log("could not execute RPC, messageHandler was not set.");
 				}
 		};
 	}
@@ -100,12 +102,11 @@
 	 * Creates a new unique identifier to be used for RPC requests and responses.
 	 * @function
 	 * @private
+	 * @param used for recursion
 	 */
-	var getNextID = function() {
-		function s4() {
-			return ((1 + Math.random()) * 0x10000|0).toString(16).substr(1);
-		}
-		return s4() + s4() + s4();
+	var getNextID = function(a) {
+	    // implementation taken from here: https://gist.github.com/982883
+        return a?(a^Math.random()*16>>a/4).toString(16):([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,getNextID);
 	}
 
 	/**
@@ -191,16 +192,16 @@
 		//TODO send back error if service and method is not webinos style
 
 		if (service.length === 0) {
-			console.log('ERROR: [RPC] Cannot handle request because of missing service in request');
+			logger.log("Cannot handle request because of missing service in request");
 			return;
 		}
 
-		console.log('INFO: [RPC] '+"Got request to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") +" with params: " + request.params );
+		logger.log("Got request to invoke " + method + " on " + service + (serviceId ? "@" + serviceId : "") +" with params: " + request.params );
 
 		var includingObject = this.registry.getServiceWithTypeAndId(service, serviceId);
 
 		if (typeof includingObject === 'undefined'){
-			console.log('INFO: [RPC] '+"No service found with id/type " + service);
+			logger.log("No service found with id/type " + service);
 			return;
 		}
 
@@ -258,7 +259,7 @@
 		//if no id is provided we cannot invoke a callback
 		if (typeof response.id === 'undefined' || response.id == null) return;
 
-		console.log('INFO: [RPC] '+"Received a response that is registered for " + response.id);
+		logger.log("Received a response that is registered for " + response.id);
 
 		//invoking linked error / success callback
 		if (typeof this.awaitingResponse[response.id] !== 'undefined'){
@@ -267,12 +268,12 @@
 				if (typeof this.awaitingResponse[response.id].onResult === 'function' && typeof response.result !== 'undefined'){
 
 					this.awaitingResponse[response.id].onResult(response.result);
-					console.log('INFO: [RPC] '+"called SCB");
+					logger.log("called SCB");
 				}
 
 				if (typeof this.awaitingResponse[response.id].onError === 'function' && typeof response.error !== 'undefined'){
 					if (typeof response.error.data !== 'undefined'){
-						console.log('INFO: [RPC] '+"Propagating error to application");
+						logger.log("Propagating error to application");
 						this.awaitingResponse[response.id].onError(response.error.data);
 					}
 					else this.awaitingResponse[response.id].onError();
@@ -290,11 +291,12 @@
 	 * @param msgid An id.
 	 */
 	_RPCHandler.prototype.handleMessage = function (jsonRPC, from, msgid){
-		console.log('INFO: [RPC] '+"New packet from messaging");
-		console.log('INFO: [RPC] '+"Response to " + from);
+		logger.log("New packet from messaging");
+		logger.log("Response to " + from);
 
 		if (typeof jsonRPC.method !== 'undefined' && jsonRPC.method != null) {
 			// received message is RPC request
+//            policyManager.enforceRPCRequest(this, jsonRPC, from, msgid, handleRequest);
 			handleRequest.call(this, jsonRPC, from, msgid);
 		} else {
 			// received message is RPC response
@@ -332,6 +334,7 @@
 			webinos.session.message_send(rpc, from);// TODO move the whole mmessage_send function here?
 		}
 	};
+
 
 	/**
 	 * Creates a JSON RPC 2.0 compliant object.
@@ -399,6 +402,26 @@
 		this.registry.unregisterObject(callback);
 	};
 
+	// _RPCHandler.prototype.invoke = function (service, method, params) {
+	// 	var call = createRPC(service, method, params)
+	// 	executeRPC(call, function () {
+	// 		if (typeof ref.onsuccess === "function") {
+	// 			ref.onsuccess.apply(null, arguments)
+	// 		}
+	// 	}, function () {
+	// 		if (typeof ref.onerror === "function") {
+	// 			ref.onerror.apply(null, arguments)
+	// 		}
+	// 	})
+
+	// 	var ref = function (successCallback, errorCallback) {
+	// 		ref.onsuccess = successCallback
+	// 		ref.onerror = errorCallback
+	// 	}
+
+	// 	return ref
+	// }
+
 	/**
 	 * Utility method that combines createRPC and executeRPC.
 	 * @param service The service (e.g., the file reader or the
@@ -412,6 +435,13 @@
 	_RPCHandler.prototype.request = function (service, method, objectRef, successCallback, errorCallback) {
 		var self = this; // TODO Bind returned function to "this", i.e., an instance of RPCHandler?
 
+	  function callback(maybeCallback) {
+	    if (typeof maybeCallback !== "function") {
+	      return function () {};
+	    }
+	    return maybeCallback;
+	  }
+
 		return function () {
 			var params = Array.prototype.slice.call(arguments);
 			var message = self.createRPC(service, method, params);
@@ -421,7 +451,7 @@
 			else if (objectRef)
 				message.id = objectRef;
 
-			self.executeRPC(message, utils.callback(successCallback, this), utils.callback(errorCallback, this));
+			self.executeRPC(message, callback(successCallback), callback(errorCallback));
 		};
 	};
 
