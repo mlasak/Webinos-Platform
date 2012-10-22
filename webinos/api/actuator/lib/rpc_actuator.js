@@ -17,8 +17,8 @@
 ******************************************************************************/
 (function() {
 
-var HOST = "localhost";
-var PORT = "7070";
+var HOST = "192.168.1.99";
+var PORT = "80";
 
 var http = require('http');
 var url = require('url')

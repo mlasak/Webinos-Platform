@@ -74,7 +74,7 @@ process.argv.forEach(function (arg) {
   }
 });
 
-var fileParams = {},
+var fileParams = {pzpHost : "192.168.1.100"},
   pzpModules = [
   {name: "get42", params: {num: "21"}},
   {name: "zap-and-shake", params: {}},
