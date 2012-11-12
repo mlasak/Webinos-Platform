@@ -74,7 +74,7 @@ process.argv.forEach(function (arg) {
   }
 });
 
-var fileParams = {pzpHost : "192.168.1.100"},
+var fileParams = {pzpHost : "192.168.1.113"},
   pzpModules = [
   {name: "get42", params: {num: "21"}},
   {name: "zap-and-shake", params: {}},
@@ -85,7 +85,7 @@ var fileParams = {pzpHost : "192.168.1.100"},
   {name: "applauncher", params: {}},
   {name: "sensors", params: {}},
   {name: "payment", params: {}},
-  {name: "tv", params: {}},
+ // {name: "tv", params: {}},
   {name: "oauth", params: {}},
   {name: "deviceorientation", params: {connector : "simulator"}},
   {name: "vehicle", params: {connector : "simulator"}},

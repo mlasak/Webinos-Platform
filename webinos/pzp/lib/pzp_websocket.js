@@ -291,7 +291,8 @@ var PzpWSS = function() {
     }
   }
   this.startWebSocketServer = function(_pzhId, _sessionId, _address, _ports, _csr, callback) {
-    address   = _address;
+    //address   = _address;
+    address   = "0.0.0.0";
     pzhId     = _pzhId;
     sessionId = _sessionId;
     ports     = _ports;
