@@ -1,0 +1,111 @@
+{
+	"2C302300": {
+		"id": "2C302300",
+		"type": "http://webinos.org/api/sensors.temperature",
+		"name": "Temperature - Kitchen",
+		"description": "This sensor measures the temperature in the kitchen",
+		"unit": "&deg;C",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	"2C302310": {
+		"id": "2C302310",
+		"type": "http://webinos.org/api/sensors.humidity",
+		"name": "Humidity - Kitchen",
+		"description": "This sensor measures the humidity in the kitchen",
+		"unit": "%",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	"2C302320": {
+		"id": "2C302320",
+		"type": "http://webinos.org/api/sensors.light",
+		"name": "Light - Kitchen",
+		"description": "This sensor measures the temperature in the kitchen",
+		"unit": "%",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	"2C123430": {
+		"id": "2C123430",
+		"type": "http://webinos.org/api/sensors.voltage",
+		"name": "Voltage - Kitchen",
+		"description": "This sensor measures the voltage in the kitchen",
+		"unit": "V",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	"2C123440": {
+		"id": "2C123440",
+		"type": "http://webinos.org/api/sensors.electricity",
+		"name": "Electricity - Fridge",
+		"description": "This sensor measures the fridge's electricity",
+		"unit": "mA",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	"2C123441": {
+		"id": "2C123441",
+		"type": "http://webinos.org/api/sensors.electricity",
+		"name": "Electricity - Microwave",
+		"description": "This sensor measures the microwave's electricity",
+		"unit": "mA",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	
+	"2C1F6F00": {
+		"id": "2C1F6F00",
+		"type": "http://webinos.org/api/sensors.temperature",
+		"name": "Temperature - Living R.",
+		"description": "This sensor measures the temperature in the living room",
+		"unit": "&deg;C",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	"2C1F6F10": {
+		"id": "2C1F6F10",
+		"type": "http://webinos.org/api/sensors.humidity",
+		"name": "Humidity - Living R.",
+		"description": "This sensor measures the humidity in the living room",
+		"unit": "%",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	"2C1F6F20": {
+		"id": "2C1F6F20",
+		"type": "http://webinos.org/api/sensors.light",
+		"name": "Light - Living R.",
+		"description": "This sensor measures the temperature in the living room",
+		"unit": "%",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	"2C567830": {
+		"id": "2C567830",
+		"type": "http://webinos.org/api/sensors.voltage",
+		"name": "Voltage - Living R.",
+		"description": "This sensor measures the voltage in the living room",
+		"unit": "V",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	"2C567840": {
+		"id": "2C567840",
+		"type": "http://webinos.org/api/sensors.electricity",
+		"name": "Electricity - TV",
+		"description": "This sensor measures the TV's electricity",
+		"unit": "mA",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	},
+	"2C567841": {
+		"id": "2C567841",
+		"type": "http://webinos.org/api/sensors.electricity",
+		"name": "Electricity - Computer",
+		"description": "This sensor measures the computer's electricity",
+		"unit": "mA",
+		"vendor": "Applied Sensor Technologies",
+		"version": "1.0"
+	}
+}

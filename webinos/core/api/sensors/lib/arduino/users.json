@@ -1,0 +1,16 @@
+{
+	"alice": {
+		"username": "alice",
+		"password": "alice",
+		"firstname": "Alice",
+		"lastname": "Alice",
+		"token": "VnXY3UWJ"
+	},
+	"bob": {
+		"username": "bob",
+		"password": "bob",
+		"firstname": "Bob",
+		"lastname": "Bob",
+		"token": "VnXY3UWJ"
+	}
+}

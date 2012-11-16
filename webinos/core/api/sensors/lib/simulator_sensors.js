@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 * 
-* Copyright 2012 Fraunhofer FOKUS
+* Copyright 2011 Alexander Futasz, Fraunhofer FOKUS
 ******************************************************************************/
 (function() {
 
@@ -23,13 +23,13 @@
  * @alias SensorModule
  * @param rpcHandler A handler for functions that use RPC to deliver their result.  
  */
-var SensorModule = function(rpcHandler, params) {
+var SensorModule = function(rpcHandler) {
 	// inherit from RPCWebinosService
 	this.base = RPCWebinosService;
 	this.base({
 		api:'http://webinos.org/api/sensors.temperature',
 		displayName:'Sensor',
-		description:'A Webinos temperature sensor. Connector: '+params.connector+'.'
+		description:'A Webinos temperature sensor.'
 	});
 	
 	this.addEventListener = function (eventType, successHandler, errorHandler, objectRef){
