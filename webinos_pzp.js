@@ -91,7 +91,7 @@ var fileParams = { getPath: function() { return pzp.session.getWebinosPath(); } 
   {name: "file", params: fileParams},
   {name: "geolocation", params: {connector : "geoip"}},
   {name: "applauncher", params: {}},
-  {name: "sensors", params: {}},
+  //{name: "sensors", params: {}},
   {name: "payment", params: {}},
   {name: "tv", params: {}},
   {name: "oauth", params: {}},

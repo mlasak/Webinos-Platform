@@ -216,6 +216,10 @@
               
               if(msg.name !== os.hostname()) {
                 logger.log("found other host");
+                logger.log("Found peer name:" + msg.name);
+                logger.log("Found peer address: " + msg.address);
+
+
                 if(serviceType === "pzp")
                   msg.name = option + "/" + msg.name + "_Pzp";
                 connectPeers(msg);
