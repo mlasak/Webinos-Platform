@@ -63,14 +63,15 @@ WebNotificationModule.prototype.notify = function(params, successCB, errorCB, ob
 	console.log("notify was invoked");
 	console.log(params);
 	
-	var title = params[0];
-	var body = params[1].body;
-	var icon = params[1].iconUrl;
+	var title = params[0].replace(/"/g,'');
+	var body = params[1].body.replace(/"/g,'');
+	var iconFileName = params[1].iconUrl.replace(/"/g,'');
+
 	
-var icon = pzp.session.getWebinosPath() + "/" + params[1].iconUrl;
+var icon = pzp.session.getWebinosPath() + "/" + iconFileName;
 			console.log("LAUNCHING: " + icon)	
 
-	if(process.platform!=='android')
+	if(process.platform==='linux' || process.platform==='win32')
 	{
 		exec("notify-send \"" + title + "\" \"" + body + "\" -i \"" + icon + "\"", function(error, stdout, stderr){
 			console.log("Result: " + error + " " + stdout + " " + stderr);
@@ -94,7 +95,33 @@ var icon = pzp.session.getWebinosPath() + "/" + params[1].iconUrl;
 		//successCB("onShow");
 		
 	}
-	else //on android
+	//on mac
+	if(process.platform==='darwin' )
+	{
+		iconFileName = iconFileName.split('/');
+		iconFileName = iconFileName[iconFileName.length-1];
+		console.log(__dirname+"/../src/platform/mac/cocoadialog/build/Default/CocoaDialog.app/Contents/MacOS/CocoaDialog bubble ‑‑border‑color 0073ba --title \""+title+"\" --text \""+body+"\" --icon-file "+__dirname+"/"+iconFileName);
+		exec(__dirname+"/../src/platform/mac/cocoadialog/build/Default/CocoaDialog.app/Contents/MacOS/CocoaDialog bubble --title "+title+" --text "+body+" --icon-file "+__dirname+"/"+iconFileName, function(error, stdout, stderr){
+
+			if (error && typeof errorCB === "function") {
+				errorCB("Could not invoke native notification.");
+				return;
+			}
+
+			if(stdout.indexOf("CLICKED") > -1) {
+				successCB("onClick");
+			}else{
+		
+				successCB("onClose");
+				
+			}
+		});
+		
+				
+		//successCB("onShow");
+		
+	}
+	if(process.platform==='android') //on android
 	{
 	  var toAndroid = [];
 	  toAndroid.push(title);
