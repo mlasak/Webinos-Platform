@@ -13,16 +13,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 * 
-* Copyright 2012 André Paul, Fraunhofer FOKUS
+* Copyright 2012-2013 Fraunhofer FOKUS
+* Authors: André Paul, Martin Lasak
 ******************************************************************************/
 (function() {
+
+var fs = require('fs');
 var RPCWebinosService = require("webinos-jsonrpc2").RPCWebinosService;
 var exec = require('child_process').exec;
 
 var dependencies = require("find-dependencies")(__dirname)	
-var pzp = dependencies.global.require(dependencies.global.pzp.location,
-    "lib/pzp.js")
-	//console.log("PZP PATH: " + pzp.session.getWebinosPath());	
+var pzp = dependencies.global.require(dependencies.global.pzp.location,"lib/pzp.js")
 
 	var not = null;
 		
@@ -66,12 +67,37 @@ WebNotificationModule.prototype.notify = function(params, successCB, errorCB, ob
 	var title = params[0].replace(/"/g,'');
 	var body = params[1].body.replace(/"/g,'');
 	var iconFileName = params[1].iconUrl.replace(/"/g,'');
+	var icon = pzp.session.getWebinosPath() + "/" + iconFileName;
+			
+	//on linux
+	if(process.platform==='linux')
+	{
+		var notifysendexecutable = (fs.existsSync(__dirname+"/../src/platform/linux/notify-send-alternative"))?__dirname+"/../src/platform/linux/notify-send-alternative":"notify-send";
+		exec(notifysendexecutable+" \"" + title + "\" \"" + body + "\" -i \"" + icon + "\"", function(error, stdout, stderr){
+			console.log("Result: " + error + " " + stdout + " " + stderr);
 
-	
-var icon = pzp.session.getWebinosPath() + "/" + iconFileName;
-			console.log("LAUNCHING: " + icon)	
+			if (error && typeof errorCB === "function") {
+				errorCB("Could not invoke native notification.");
+				return;
+			}
 
-	if(process.platform==='linux' || process.platform==='win32')
+			if(stdout.indexOf("CLICKED") > -1) {
+				successCB("onClick");
+			}
+			else{
+				if(stdout.indexOf("CLOSED") > -1) {
+					successCB("onClose");
+				}
+			}
+		});
+		
+				
+		//successCB("onShow");
+		
+	}
+
+	//on win
+	if(process.platform==='win32')
 	{
 		exec("notify-send \"" + title + "\" \"" + body + "\" -i \"" + icon + "\"", function(error, stdout, stderr){
 			console.log("Result: " + error + " " + stdout + " " + stderr);
@@ -95,12 +121,12 @@ var icon = pzp.session.getWebinosPath() + "/" + iconFileName;
 		//successCB("onShow");
 		
 	}
+
 	//on mac
 	if(process.platform==='darwin' )
 	{
 		iconFileName = iconFileName.split('/');
 		iconFileName = iconFileName[iconFileName.length-1];
-		console.log(__dirname+"/../src/platform/mac/cocoadialog/build/Default/CocoaDialog.app/Contents/MacOS/CocoaDialog bubble ‑‑border‑color 0073ba --title \""+title+"\" --text \""+body+"\" --icon-file "+__dirname+"/"+iconFileName);
 		exec(__dirname+"/../src/platform/mac/cocoadialog/build/Default/CocoaDialog.app/Contents/MacOS/CocoaDialog bubble --title "+title+" --text "+body+" --icon-file "+__dirname+"/"+iconFileName, function(error, stdout, stderr){
 
 			if (error && typeof errorCB === "function") {
@@ -121,6 +147,8 @@ var icon = pzp.session.getWebinosPath() + "/" + iconFileName;
 		//successCB("onShow");
 		
 	}
+
+	//on android
 	if(process.platform==='android') //on android
 	{
 	  var toAndroid = [];
