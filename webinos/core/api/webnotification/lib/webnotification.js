@@ -67,8 +67,10 @@ WebNotificationModule.prototype.notify = function(params, successCB, errorCB, ob
 	var title = params[0].replace(/"/g,'');
 	var body = params[1].body.replace(/"/g,'');
 	var iconFileName = params[1].iconUrl.replace(/"/g,'');
-	var icon = pzp.session.getWebinosPath() + "/" + iconFileName;
-			
+	//var icon = pzp.session.getWebinosPath() + "/" + iconFileName;
+	//TODO: fetch images from remote, currently only full path to image is supported 
+	var icon = iconFileName;
+	
 	//on linux
 	if(process.platform==='linux')
 	{
