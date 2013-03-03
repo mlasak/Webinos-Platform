@@ -123,8 +123,14 @@
       setTimeout(checkLaunchRequest, 2000, req, successCB, errorCB);
     } else if (/^http[s]?:\/{2}/.test(appURI)) {
       console.log("applauncher: launching " + appURI);
-      var req = writeLaunchRequest(appURI,false);
-      setTimeout(checkLaunchRequest, 2000, req, successCB, errorCB);
+      if(process.platform==="darwin"){
+        var spawn = require('child_process').spawn;
+        spawn("open",[appURI]);
+        successCB(true);
+      }else{
+        var req = writeLaunchRequest(appURI,false);
+        setTimeout(checkLaunchRequest, 2000, req, successCB, errorCB);
+      }
     } else {
       console.log("applauncher: invalid/unknown appURI " + appURI);
       if (typeof errorCB === "function") {
