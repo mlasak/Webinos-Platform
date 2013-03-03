@@ -49,24 +49,24 @@
 
             // Set the communication channel's port.
             if (isWebServer) {
-                try {
-                    var xmlhttp = new XMLHttpRequest ();
-                    xmlhttp.open ("GET", "/webinosConfig.json", false);
-                    xmlhttp.send ();
-                    if (xmlhttp.status == 200) {
-                        var resp = JSON.parse (xmlhttp.responseText);
-                        port = resp.websocketPort;
-                    } else { // We are not inside a pzp or widget server.
-                        console.log ("CAUTION: webinosConfig.json failed to load. Are you on a pzp/widget server or older version of webinos? Trying the guess  communication channel's port.");
-                        port = port + 1; // Guessing that the port is +1 to the webserver's. This was the way to detect it on old versions of pzp.
+                var config = fetchWebinosConfig();
+                if (config) {
+                    port = config.websocketPort;
+                }else{ // We are not inside a pzp or widget server OR the XMLHttpRequest failed.
+                    console.log("CAUTION: webinosConfig.json failed to load. Will try to detect local webinos server.");
+                    var webinosFileLocation = getCurrentScriptLocation();
+                    if (webinosFileLocation.origin != window.location.origin) {
+                        hostname = webinosFileLocation.hostname;
+                        port = webinosFileLocation.port;
+                        console.log("CAUTION: The pzp communication host and port are unknown. Trying webinos.js location info (" + hostname + ":" + port + ").");
+                    } else {
+                        console.log("CAUTION: The pzp communication host and port are unknown. Trying the default communication channel (" + defaultHost + ":" + defaultPort + ").");
+                        useDefaultHost = true;
+                        useDefaultPort = true;
                     }
-                } catch (err) { // XMLHttpRequest is not supported or something went wrong with it.
-                    console.log ("CAUTION: The pzp communication host and port are unknown. Trying the default communication channel.");
-                    useDefaultHost = true;
-                    useDefaultPort = true;
                 }
             } else { // Let's try the default pzp hostname and port.
-                console.log ("CAUTION: No web server detected. Using a local file? Trying the default communication channel.");
+                console.log ("CAUTION: No web server detected. Using a local file? Trying the default communication channel (" + defaultHost + ":" + defaultPort + ").");
                 useDefaultHost = true;
                 useDefaultPort = true;
             }
@@ -108,6 +108,56 @@
     }
 
     createCommChannel ();
+
+    /**
+     * Returns the webinos configuration in JSON object format or false if there was an error.
+     * The default behavior is to check the current page root for the config.
+     * eg.
+     * - If you are accessing a demo served from the pzp server, http://localhost:8080/apps/demo/index.html,
+     *   it will try to fetch http://localhost:8080/webinosConfig.js
+     * @param {string} [pzpRootBaseUrl] define the full path for the pzp root
+     * @return {Object|Boolean} false or JSON object of config
+     */
+    function fetchWebinosConfig(pzpRootBaseUrl){
+        try {
+            pzpRootBaseUrl = pzpRootBaseUrl || "";
+            var xmlhttp = new XMLHttpRequest();
+            console.log("Fetching: " + pzpRootBaseUrl + "/webinosConfig.json");
+            xmlhttp.open("GET", pzpRootBaseUrl + "/webinosConfig.json", false);
+            xmlhttp.send();
+            if (xmlhttp.status == 200) {
+                return JSON.parse(xmlhttp.responseText);
+            } else {
+                return false;
+            }
+        } catch (err) { // XMLHttpRequest is not supported or something went wrong with it.
+            console.log("ERROR: XMLHttpRequest is not supported or failed by your browser.");
+            return false;
+        }
+    }
+
+    function getCurrentScriptLocation() {
+        var retLocation = {
+            hash: "",
+            host: "",
+            hostname: "",
+            href: "",
+            origin: "",
+            pathname: "",
+            port: "",
+            protocol: "",
+            search: ""
+        };
+        var scriptTags = document.getElementsByTagName('script');
+        // We take the last script tag because it's the one we are executed in
+        var path = scriptTags[scriptTags.length - 1].src;
+        var parser = document.createElement('a');
+        parser.href = path;
+        for (var i in retLocation) {
+            retLocation[i] = parser[i];
+        }
+        return retLocation;
+    }
 
     webinos.rpcHandler = new RPCHandler (undefined, new Registry ());
     webinos.messageHandler = new MessageHandler (webinos.rpcHandler);
