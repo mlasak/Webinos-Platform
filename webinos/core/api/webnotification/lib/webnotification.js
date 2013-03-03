@@ -13,16 +13,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 * 
-* Copyright 2012 André Paul, Fraunhofer FOKUS
+* Copyright 2012-2013 Fraunhofer FOKUS
+* Authors: André Paul, Martin Lasak
 ******************************************************************************/
 (function() {
+
+var fs = require('fs');
 var RPCWebinosService = require("webinos-jsonrpc2").RPCWebinosService;
 var exec = require('child_process').exec;
 
 var dependencies = require("find-dependencies")(__dirname)	
-var pzp = dependencies.global.require(dependencies.global.pzp.location,
-    "lib/pzp.js")
-	//console.log("PZP PATH: " + pzp.session.getWebinosPath());	
+var pzp = dependencies.global.require(dependencies.global.pzp.location,"lib/pzp.js")
 
 	var not = null;
 		
@@ -63,14 +64,42 @@ WebNotificationModule.prototype.notify = function(params, successCB, errorCB, ob
 	console.log("notify was invoked");
 	console.log(params);
 	
-	var title = params[0];
-	var body = params[1].body;
-	var icon = params[1].iconUrl;
+	var title = params[0].replace(/"/g,'');
+	var body = params[1].body.replace(/"/g,'');
+	var iconFileName = params[1].iconUrl.replace(/"/g,'');
+	//var icon = pzp.session.getWebinosPath() + "/" + iconFileName;
+	//TODO: fetch images from remote, currently only full path to image is supported 
+	var icon = iconFileName;
 	
-var icon = pzp.session.getWebinosPath() + "/" + params[1].iconUrl;
-			console.log("LAUNCHING: " + icon)	
+	//on linux
+	if(process.platform==='linux')
+	{
+		var notifysendexecutable = (fs.existsSync(__dirname+"/../src/platform/linux/notify-send-alternative"))?__dirname+"/../src/platform/linux/notify-send-alternative":"notify-send";
+		exec(notifysendexecutable+" \"" + title + "\" \"" + body + "\" -i \"" + icon + "\"", function(error, stdout, stderr){
+			console.log("Result: " + error + " " + stdout + " " + stderr);
 
-	if(process.platform!=='android')
+			if (error && typeof errorCB === "function") {
+				errorCB("Could not invoke native notification.");
+				return;
+			}
+
+			if(stdout.indexOf("CLICKED") > -1) {
+				successCB("onClick");
+			}
+			else{
+				if(stdout.indexOf("CLOSED") > -1) {
+					successCB("onClose");
+				}
+			}
+		});
+		
+				
+		//successCB("onShow");
+		
+	}
+
+	//on win
+	if(process.platform==='win32')
 	{
 		exec("notify-send \"" + title + "\" \"" + body + "\" -i \"" + icon + "\"", function(error, stdout, stderr){
 			console.log("Result: " + error + " " + stdout + " " + stderr);
@@ -94,7 +123,35 @@ var icon = pzp.session.getWebinosPath() + "/" + params[1].iconUrl;
 		//successCB("onShow");
 		
 	}
-	else //on android
+
+	//on mac
+	if(process.platform==='darwin' )
+	{
+		iconFileName = iconFileName.split('/');
+		iconFileName = iconFileName[iconFileName.length-1];
+		exec(__dirname+"/../src/platform/mac/cocoadialog/build/Default/CocoaDialog.app/Contents/MacOS/CocoaDialog bubble --title "+title+" --text "+body+" --icon-file "+__dirname+"/"+iconFileName, function(error, stdout, stderr){
+
+			if (error && typeof errorCB === "function") {
+				errorCB("Could not invoke native notification.");
+				return;
+			}
+
+			if(stdout.indexOf("CLICKED") > -1) {
+				successCB("onClick");
+			}else{
+		
+				successCB("onClose");
+				
+			}
+		});
+		
+				
+		//successCB("onShow");
+		
+	}
+
+	//on android
+	if(process.platform==='android') //on android
 	{
 	  var toAndroid = [];
 	  toAndroid.push(title);
