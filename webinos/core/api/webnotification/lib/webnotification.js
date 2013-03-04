@@ -44,7 +44,7 @@ var WebNotificationModule = function(rpcHandler, params) {
 	// inherit from RPCWebinosService
 	this.base = RPCWebinosService;
 	this.base({
-		api:'http://webinos.org/api/notifications',
+		api:'http://webinos.org/api/webnotification',
 		displayName:'Web Notification',
 		description:'Web Notification API'
 	});
@@ -129,7 +129,7 @@ WebNotificationModule.prototype.notify = function(params, successCB, errorCB, ob
 	{
 		iconFileName = iconFileName.split('/');
 		iconFileName = iconFileName[iconFileName.length-1];
-		exec(__dirname+"/../src/platform/mac/cocoadialog/build/Default/CocoaDialog.app/Contents/MacOS/CocoaDialog bubble --title "+title+" --text "+body+" --icon-file "+__dirname+"/"+iconFileName, function(error, stdout, stderr){
+		exec(__dirname+"/../src/platform/mac/cocoadialog/build/Default/CocoaDialog.app/Contents/MacOS/CocoaDialog bubble --title \""+title+"\" --text \""+body+"\" --icon-file "+__dirname+"/"+iconFileName, function(error, stdout, stderr){
 
 			if (error && typeof errorCB === "function") {
 				errorCB("Could not invoke native notification.");
